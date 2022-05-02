@@ -7,6 +7,4 @@ import reactor.core.publisher.Mono;
 
 @Repository
 public interface MovementRepository extends ReactiveMongoRepository<Movement, String> {
-
-    Mono<Movement> findByIdClient(String idClient);
 }

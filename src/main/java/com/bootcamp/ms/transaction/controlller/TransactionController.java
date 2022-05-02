@@ -13,8 +13,8 @@ import reactor.core.publisher.Mono;
 import java.net.URI;
 
 @RestController
-@RequestMapping("personal/passive/saving_account")
-@Tag(name = "Personal Passive Product Saving Account Type", description = "Manage Personal Passive Product saving accounts type")
+@RequestMapping("transactions")
+@Tag(name = "Transactions", description = "Manage transactions generate in each operation")
 @CrossOrigin(value = {"*"})
 @RequiredArgsConstructor
 public class TransactionController {

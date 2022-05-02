@@ -14,8 +14,8 @@ import reactor.core.publisher.Mono;
 import java.net.URI;
 
 @RestController
-@RequestMapping("personal/passive/saving_account")
-@Tag(name = "Personal Passive Product Saving Account Type", description = "Manage Personal Passive Product saving accounts type")
+@RequestMapping("movement")
+@Tag(name = "Movement", description = "Manage movements origin to generate the transactions")
 @CrossOrigin(value = {"*"})
 @RequiredArgsConstructor
 public class MovementController {
