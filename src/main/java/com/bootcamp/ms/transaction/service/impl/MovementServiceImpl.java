@@ -51,11 +51,19 @@ public class MovementServiceImpl implements MovementService {
                 .switchIfEmpty(Mono.defer(() -> {
                             movement.setId(null);
                             movement.setInsertionDate(new Date());
-                            return repository.save(movement).flatMap(m -> {
-                                return generateTransactions(m).map(tr -> {
-                                    return m;
-                                });
+
+                            return getProductBalance(movement.getIdDepartureAccount()).map(ba -> {
+                                BigDecimal comission = new BigDecimal(1);
+                                if (ba.compareTo(movement.getAmount().add(comission)) > -1) {
+                                    return repository.save(movement).flatMap(m -> {
+                                        return generateTransactions(m).map(tr -> {
+                                            return m;
+                                        });
+                                    });
+                                }
+                                return Mono.error(new Exception("Insufficient funds"));
                             });
+
                         }
                 ))
                 .onErrorResume(e -> Mono.error(e)).cast(Movement.class);
@@ -125,5 +133,11 @@ public class MovementServiceImpl implements MovementService {
                         return Mono.just(transaction);
                     }
                 });
+    }
+
+    private Mono<BigDecimal> getProductBalance(String idOriginTransaction) {
+        return service.findByIdOriginTransaction(idOriginTransaction)
+                .map(tr -> tr.equals(Constant.ENTRY) ? tr.getAmount() : tr.getAmount().negate())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }
