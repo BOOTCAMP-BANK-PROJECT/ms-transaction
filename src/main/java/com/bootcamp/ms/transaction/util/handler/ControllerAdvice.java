@@ -1,9 +1,8 @@
 package com.bootcamp.ms.transaction.util.handler;
 
-
-import com.bootcamp.personal.passive.currentaccount.util.Util;
-import com.bootcamp.personal.passive.currentaccount.util.handler.exceptions.BadRequestException;
-import com.bootcamp.personal.passive.currentaccount.util.handler.exceptions.NotFoundException;
+import com.bootcamp.ms.transaction.util.Util;
+import com.bootcamp.ms.transaction.util.handler.exceptions.BadRequestException;
+import com.bootcamp.ms.transaction.util.handler.exceptions.NotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
