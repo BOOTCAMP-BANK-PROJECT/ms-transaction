@@ -29,7 +29,7 @@ public interface TransactionService {
 
     public Mono<Transaction> checkAdmissedTransactions(Transaction transaction, Long transactionsAllowed);
 
-    Flux<Transaction> getByIdOriginTransactionAndInsertionDateBetweenAndCommission(String idOriginTransaction, Date startDate, Date finishDate, BigDecimal commission);
+    Flux<Transaction> getByIdOriginTransactionAndInsertionDateBetweenAndIsComission(String idOriginTransaction, Date startDate, Date finishDate, Boolean isComission);
 
     Flux<Transaction> getByIdOriginTransactionAndInsertionDateBetween(String idOriginTransaction, Date startDate, Date finishDate);
 

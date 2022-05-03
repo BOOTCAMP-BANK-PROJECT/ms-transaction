@@ -89,8 +89,8 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public Flux<Transaction> getByIdOriginTransactionAndInsertionDateBetweenAndCommission(String idOriginTransaction, Date startDate, Date finishDate, BigDecimal commission) {
-        return repository.findByIdOriginTransactionAndInsertionDateBetweenAndCommission(idOriginTransaction, startDate, finishDate, commission);
+    public Flux<Transaction> getByIdOriginTransactionAndInsertionDateBetweenAndIsComission(String idOriginTransaction, Date startDate, Date finishDate, Boolean isComission) {
+        return repository.findByIdOriginTransactionAndInsertionDateBetweenAndIsComission(idOriginTransaction, startDate, finishDate, isComission);
     }
 
     @Override
