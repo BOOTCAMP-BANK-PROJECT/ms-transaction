@@ -1,8 +1,12 @@
 package com.bootcamp.ms.transaction.service;
 
+import com.bootcamp.ms.transaction.entity.Movement;
 import com.bootcamp.ms.transaction.entity.Transaction;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.math.BigDecimal;
+import java.util.Date;
 
 
 public interface TransactionService {
@@ -17,6 +21,17 @@ public interface TransactionService {
 
     public Mono<Transaction> delete(String id);
 
-    public Flux<Transaction> findByIdOriginTransaction(String idOriginTransaction);
+    public Flux<Transaction> getByIdOriginTransaction(String idOriginTransaction);
 
+    public Mono<Transaction> generateTransactions(Movement movement);
+
+    public Mono<BigDecimal> getProductBalance(String idOriginTransaction);
+
+    public Mono<Transaction> checkAdmissedTransactions(Transaction transaction, Long transactionsAllowed);
+
+    Flux<Transaction> getByIdOriginTransactionAndInsertionDateBetweenAndCommission(String idOriginTransaction, Date startDate, Date finishDate, BigDecimal commission);
+
+    Flux<Transaction> getByIdOriginTransactionAndInsertionDateBetween(String idOriginTransaction, Date startDate, Date finishDate);
+
+    Flux<Transaction> getByIdOriginTransactionAndOperationTypeAndInsertionDateBetween(String idOriginTransaction, Short operationType, Date startDate, Date finishDate);
 }

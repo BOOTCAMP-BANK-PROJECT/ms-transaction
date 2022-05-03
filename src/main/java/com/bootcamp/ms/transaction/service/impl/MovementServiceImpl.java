@@ -1,7 +1,6 @@
 package com.bootcamp.ms.transaction.service.impl;
 
 import com.bootcamp.ms.transaction.entity.Movement;
-import com.bootcamp.ms.transaction.entity.Transaction;
 import com.bootcamp.ms.transaction.repository.MovementRepository;
 import com.bootcamp.ms.transaction.service.MovementService;
 import com.bootcamp.ms.transaction.service.TransactionService;
@@ -22,7 +21,7 @@ public class MovementServiceImpl implements MovementService {
 
     public final MovementRepository repository;
 
-    private TransactionService service;
+    public final TransactionService service;
 
     private WebClient webClientAccounts;
 
@@ -52,11 +51,11 @@ public class MovementServiceImpl implements MovementService {
                             movement.setId(null);
                             movement.setInsertionDate(new Date());
 
-                            return getProductBalance(movement.getIdDepartureAccount()).map(ba -> {
+                            return service.getProductBalance(movement.getIdDepartureAccount()).map(ba -> {
                                 BigDecimal comission = new BigDecimal(1);
                                 if (ba.compareTo(movement.getAmount().add(comission)) > -1) {
                                     return repository.save(movement).flatMap(m -> {
-                                        return generateTransactions(m).map(tr -> {
+                                        return service.generateTransactions(m).map(tr -> {
                                             return m;
                                         });
                                     });
@@ -101,43 +100,4 @@ public class MovementServiceImpl implements MovementService {
                 )));
     }
 
-    private Mono<Transaction> generateTransactions(Movement movement) {
-        Transaction objTransaction = new Transaction(null, movement.getId(), movement.getAmount(),
-                movement.getIdDepartureAccount(), new Date(), movement.getIsoCurrencyCode(),
-                movement.getOriginMovement(), movement.getDescriptionMovement(), Constant.EXIT, new Date(),
-                "PLHERRERAM", "192.168.1.2", Constant.STATUS_ACTIVE);
-
-        Long transactionsAllowed = 3L;
-
-        return service.save(objTransaction).flatMap(tr -> {
-            tr.setIdOriginTransaction(movement.getIdIncomeAccount());
-            tr.setOperationType(Constant.ENTRY);
-            Mono<Transaction> transactionMono = service.save(tr).map(tre -> {
-                checkAdmissedTransactions(tre, transactionsAllowed);
-                checkAdmissedTransactions(tr, transactionsAllowed);
-                return tr;
-            });
-            return Mono.just(tr);
-        });
-    }
-
-    private Mono<Transaction> checkAdmissedTransactions(Transaction transaction, Long transactionsAllowed) {
-        BigDecimal comission = new BigDecimal(1);
-        return service.findByIdOriginTransaction(transaction.getIdOriginTransaction()).count()
-                .map(c -> c.compareTo(transactionsAllowed) < 0).flatMap(re -> {
-                    if (re) {
-                        transaction.setAmount(comission);
-                        transaction.setDescriptionMovement(Constant.COMISSION);
-                        return service.save(transaction);
-                    } else {
-                        return Mono.just(transaction);
-                    }
-                });
-    }
-
-    private Mono<BigDecimal> getProductBalance(String idOriginTransaction) {
-        return service.findByIdOriginTransaction(idOriginTransaction)
-                .map(tr -> tr.equals(Constant.ENTRY) ? tr.getAmount() : tr.getAmount().negate())
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
 }

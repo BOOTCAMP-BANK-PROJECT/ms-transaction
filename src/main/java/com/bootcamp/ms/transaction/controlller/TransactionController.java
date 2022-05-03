@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
 import java.net.URI;
 
 @RestController
@@ -60,5 +61,14 @@ public class TransactionController {
                         .contentType(MediaType.APPLICATION_JSON)
                         .body(p))
                 .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{idOriginTransaction}")
+    public Mono<ResponseEntity<Mono<BigDecimal>>> getProductBalance(@PathVariable String idOriginTransaction) {
+        return Mono.just(
+                ResponseEntity.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(service.getProductBalance(idOriginTransaction))
+        );
     }
 }

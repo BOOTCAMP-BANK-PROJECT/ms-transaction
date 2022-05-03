@@ -24,6 +24,7 @@ public class Movement {
     private String isoCurrencyCode;
     private String originMovement;
     private String descriptionMovement;
+    private Boolean isPassive;
     private Date insertionDate;
     private String fk_insertionUser;
     private String insertionTerminal;

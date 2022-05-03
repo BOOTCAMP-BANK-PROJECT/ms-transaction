@@ -25,6 +25,8 @@ public class Transaction {
     private String descriptionMovement;
     private Short operationType;
     private Date insertionDate;
+    private Boolean isComission;
+    private Boolean isPassive;
     private String fk_insertionUser;
     private String insertionTerminal;
     private short registrationStatus;
