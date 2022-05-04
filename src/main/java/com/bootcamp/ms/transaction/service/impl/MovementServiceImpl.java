@@ -50,19 +50,8 @@ public class MovementServiceImpl implements MovementService {
                 .switchIfEmpty(Mono.defer(() -> {
                             movement.setId(null);
                             movement.setInsertionDate(new Date());
-
-                            return service.getProductBalance(movement.getIdDepartureAccount()).map(ba -> {
-                                BigDecimal comission = new BigDecimal(1);
-                                if (ba.compareTo(movement.getAmount().add(comission)) > -1) {
-                                    return repository.save(movement).flatMap(m -> {
-                                        return service.generateTransactions(m).map(tr -> {
-                                            return m;
-                                        });
-                                    });
-                                }
-                                return Mono.error(new Exception("Insufficient funds"));
-                            });
-
+                            movement.setRegistrationStatus((short)1);
+                            return admissionMovement(movement);
                         }
                 ))
                 .onErrorResume(e -> Mono.error(e)).cast(Movement.class);
@@ -98,6 +87,34 @@ public class MovementServiceImpl implements MovementService {
                         MovementServiceImpl.class,
                         "update.onErrorResume"
                 )));
+    }
+
+    public Mono<Movement> admissionMovement(Movement movement){
+        return service.getProductBalance(movement.getId()).flatMap(am ->{
+            return service.checkComission(movement.getIdDepartureAccount(),3L).flatMap(re ->{
+                if(re==true){
+                    if(am.compareTo(movement.getAmount().add(Constant.AMOUNT_COMISSION))>-1){
+                        return repository.save(movement).flatMap(m -> {
+                            return service.generateTransactions(m).map(tr -> {
+                                return m;
+                            });
+                        });
+                    }else{
+                        return Mono.error(new Exception("Insufficient funds"));
+                    }
+                }else{
+                    if(am.compareTo(movement.getAmount())>-1){
+                        return repository.save(movement).flatMap(m -> {
+                            return service.generateTransactions(m).map(tr -> {
+                                return m;
+                            });
+                        });
+                    }else{
+                        return Mono.error(new Exception("Insufficient funds"));
+                    }
+                }
+            });
+        }).onErrorResume(e -> Mono.error(e)).cast(Movement.class);
     }
 
 }

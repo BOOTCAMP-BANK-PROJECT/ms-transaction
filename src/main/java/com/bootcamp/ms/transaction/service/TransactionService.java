@@ -27,9 +27,11 @@ public interface TransactionService {
 
     public Mono<BigDecimal> getProductBalance(String idOriginTransaction);
 
-    public Mono<Transaction> checkAdmissedTransactions(Transaction transaction, Long transactionsAllowed);
+    public Mono<Transaction> generateComission(Transaction transaction, Long transactionsAllowed);
 
-    Flux<Transaction> getByIdOriginTransactionAndInsertionDateBetweenAndIsComission(String idOriginTransaction, Date startDate, Date finishDate, Boolean isComission);
+    public Mono<Boolean> checkComission(String idOriginTransaction, Long transactionsAllowed);
+
+        Flux<Transaction> getByIdOriginTransactionAndInsertionDateBetweenAndIsComission(String idOriginTransaction, Date startDate, Date finishDate, Boolean isComission);
 
     Flux<Transaction> getByIdOriginTransactionAndInsertionDateBetween(String idOriginTransaction, Date startDate, Date finishDate);
 

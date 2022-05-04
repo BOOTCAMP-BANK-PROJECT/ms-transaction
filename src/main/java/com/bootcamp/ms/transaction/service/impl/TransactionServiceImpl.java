@@ -108,7 +108,7 @@ public class TransactionServiceImpl implements TransactionService {
         Transaction objTransaction = new Transaction(null, movement.getId(), movement.getAmount(),
                 movement.getIdDepartureAccount(), new Date(), movement.getIsoCurrencyCode(),
                 movement.getOriginMovement(), movement.getDescriptionMovement(), Constant.EXIT, new Date(),
-                false,movement.getIsPassive(), "PLHERRERAM", "192.168.1.2", Constant.STATUS_ACTIVE);
+                false, movement.getIsPassive(), "PLHERRERAM", "192.168.1.2", Constant.STATUS_ACTIVE);
 
         Long transactionsAllowed = 3L;
 
@@ -116,30 +116,31 @@ public class TransactionServiceImpl implements TransactionService {
             tr.setIdOriginTransaction(movement.getIdIncomeAccount());
             tr.setOperationType(Constant.ENTRY);
             Mono<Transaction> transactionMono = repository.save(tr).map(tre -> {
-                if(movement.getIsPassive()) {
-                    checkAdmissedTransactions(tre, transactionsAllowed);
-                    checkAdmissedTransactions(tr, transactionsAllowed);
+                if (movement.getIsPassive()) {
+                    generateComission(tre, transactionsAllowed);
+                    generateComission(tr, transactionsAllowed);
                 }
                 return tr;
             });
             return Mono.just(tr);
         });
     }
+
     @Override
-    public Mono<Transaction> checkAdmissedTransactions(Transaction transaction, Long transactionsAllowed) {
+    public Mono<Transaction> generateComission(Transaction transaction, Long transactionsAllowed) {
         BigDecimal comission = new BigDecimal(1);
-        return getByIdOriginTransaction(transaction.getIdOriginTransaction()).count()
-                .map(c -> c.compareTo(transactionsAllowed) < 0).flatMap(re -> {
-                    if (re) {
-                        transaction.setIsComission(true);
-                        transaction.setAmount(comission);
-                        transaction.setDescriptionMovement(Constant.COMISSION);
-                        return repository.save(transaction);
-                    } else {
-                        return Mono.just(transaction);
-                    }
-                });
+        return checkComission(transaction.getIdOriginTransaction(), transactionsAllowed).flatMap(re -> {
+            if (re) {
+                transaction.setIsComission(true);
+                transaction.setAmount(comission);
+                transaction.setDescriptionMovement(Constant.COMISSION);
+                return repository.save(transaction);
+            } else {
+                return Mono.just(transaction);
+            }
+        });
     }
+
     @Override
     public Mono<BigDecimal> getProductBalance(String idOriginTransaction) {
         return getByIdOriginTransaction(idOriginTransaction)
@@ -147,5 +148,14 @@ public class TransactionServiceImpl implements TransactionService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
+    @Override
+    public Mono<Boolean> checkComission(String idOriginTransaction, Long transactionsAllowed) {
+        if (idOriginTransaction.length() < 24) {
+            return Mono.just(false);
+        } else {
+            return getByIdOriginTransaction(idOriginTransaction).count()
+                    .map(c -> c.compareTo(transactionsAllowed) < 0);
+        }
+    }
 
 }

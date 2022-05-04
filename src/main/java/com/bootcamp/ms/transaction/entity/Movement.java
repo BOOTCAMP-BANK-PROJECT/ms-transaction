@@ -25,6 +25,7 @@ public class Movement {
     private String originMovement;
     private String descriptionMovement;
     private Boolean isPassive;
+    private Boolean cash;
     private Date insertionDate;
     private String fk_insertionUser;
     private String insertionTerminal;
