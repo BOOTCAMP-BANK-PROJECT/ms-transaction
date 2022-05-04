@@ -1,17 +1,22 @@
 package com.bootcamp.ms.transaction.service.impl;
 
+import com.bootcamp.ms.transaction.entity.CreditCard;
 import com.bootcamp.ms.transaction.entity.Movement;
 import com.bootcamp.ms.transaction.entity.Transaction;
 import com.bootcamp.ms.transaction.repository.TransactionRepository;
 import com.bootcamp.ms.transaction.service.TransactionService;
+import com.bootcamp.ms.transaction.service.WebClientService;
 import com.bootcamp.ms.transaction.util.Constant;
+import com.bootcamp.ms.transaction.util.DateProcess;
 import com.bootcamp.ms.transaction.util.handler.exceptions.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
+import java.util.Calendar;
 import java.util.Date;
 
 @Service
@@ -19,6 +24,8 @@ import java.util.Date;
 public class TransactionServiceImpl implements TransactionService {
 
     public final TransactionRepository repository;
+
+    public final WebClientService webClient;
 
     @Override
     public Flux<Transaction> getAll() {
@@ -158,4 +165,78 @@ public class TransactionServiceImpl implements TransactionService {
         }
     }
 
+    public Mono<BigDecimal> expiredDebtCreditCardV1(String idOriginTransaction) {
+        return webClient
+                .getWebClient()
+                .post()
+                .uri("personal/active/credit_card/")
+                .bodyValue(idOriginTransaction)
+                .retrieve()
+                .bodyToMono(CreditCard.class).map(cc -> {
+                    Calendar today = Calendar.getInstance();
+                    Calendar cutDateStart = Calendar.getInstance();
+                    Calendar cutDateFinish = Calendar.getInstance();
+                    Calendar paymentDate = Calendar.getInstance();
+
+                    cutDateStart.setTime(DateProcess.updateDate(cc.getCutDate(), 0));
+                    paymentDate.setTime(DateProcess.updateDate(cc.getPaymentDate(), 1));
+                    cutDateFinish.setTime(DateProcess.updateDate(cc.getPaymentDate(), 1));
+
+                    BigDecimal exitAcumulator = new BigDecimal(0);
+                    BigDecimal entryAcumulator = new BigDecimal(0);
+
+
+                    repository.findByIdOriginTransactionAndInsertionDateBetween(idOriginTransaction,
+                                    DateProcess.reduceOneMonth(cutDateStart.getTime(), 2),
+                                    DateProcess.reduceOneMonth(paymentDate.getTime(), 1))
+                            .map(tr -> {
+                                if (Short.compare(tr.getOperationType(), Constant.EXIT) == 0 &&
+                                        (tr.getTransactionDate().before(cutDateFinish.getTime()))) {
+                                    exitAcumulator.add(tr.getAmount()).negate();
+                                } else if (Short.compare(tr.getOperationType(), Constant.ENTRY) == 0) {
+                                    entryAcumulator.add(tr.getAmount());
+                                }
+                                return entryAcumulator.add(exitAcumulator);
+                            });
+                    return entryAcumulator;
+                });
+    }
+
+
+    public Mono<BigDecimal> expiredDebtCreditCardV2(String idOriginTransaction) {
+        return webClient
+                .getWebClient()
+                .post()
+                .uri("personal/active/credit_card/")
+                .bodyValue(idOriginTransaction)
+                .retrieve()
+                .bodyToMono(CreditCard.class).flatMap(cc -> {
+                    Calendar today = Calendar.getInstance();
+                    Calendar cutDateStart = Calendar.getInstance();
+                    Calendar cutDateFinish = Calendar.getInstance();
+                    Calendar paymentDate = Calendar.getInstance();
+
+                    cutDateStart.setTime(DateProcess.updateDate(cc.getCutDate(), 0));
+                    paymentDate.setTime(DateProcess.updateDate(cc.getPaymentDate(), 1));
+                    cutDateFinish.setTime(DateProcess.updateDate(cc.getPaymentDate(), 1));
+
+
+                    Mono<BigDecimal> entries = repository.findByIdOriginTransactionAndInsertionDateBetween(idOriginTransaction,
+                                    DateProcess.reduceOneMonth(cutDateStart.getTime(), 2),
+                                    DateProcess.reduceOneMonth(paymentDate.getTime(), 1))
+                            .map(tm -> tm.getOperationType().compareTo(Constant.ENTRY) == 0 ? tm.getAmount() :
+                                    new BigDecimal(0)).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                    Mono<BigDecimal> exits = repository.findByIdOriginTransactionAndInsertionDateBetween(idOriginTransaction,
+                                    DateProcess.reduceOneMonth(cutDateStart.getTime(), 2),
+                                    DateProcess.reduceOneMonth(cutDateFinish.getTime(), 1))
+                            .map(tm -> tm.getOperationType().compareTo(Constant.EXIT) == 0 ? tm.getAmount().negate() :
+                                    new BigDecimal(0)).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                    return entries.map(c -> {
+                        exits.map(c::add);
+                        return c;
+                    });
+                });
+    }
 }
