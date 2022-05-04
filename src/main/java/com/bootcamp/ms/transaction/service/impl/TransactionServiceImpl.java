@@ -239,4 +239,44 @@ public class TransactionServiceImpl implements TransactionService {
                     });
                 });
     }
+
+    public Mono<BigDecimal> expiredDebtCredit(String idOriginTransaction) {
+        return webClient
+                .getWebClient()
+                .post()
+                .uri("personal/active/credit_card/")
+                .bodyValue(idOriginTransaction)
+                .retrieve()
+                .bodyToMono(CreditCard.class).flatMap(cc -> {
+                    Integer settingDay = 0;
+                    Calendar today = Calendar.getInstance();
+                    Calendar paymentDate = Calendar.getInstance();
+                    Calendar paymentDatePeriod = Calendar.getInstance();
+
+                    paymentDate.setTime(DateProcess.updateDate(cc.getPaymentDate(), 1));
+                    paymentDatePeriod.setTime(DateProcess.updateDate(cc.getPaymentDate(), 0));
+
+                    if (today.before(paymentDate)) {
+                        settingDay = 2;
+                    } else {
+                        settingDay = 1;
+                    }
+
+                    return repository.findByIdOriginTransactionAndInsertionDateBetween(idOriginTransaction,
+                                    DateProcess.reduceOneMonth(paymentDatePeriod.getTime(), settingDay),
+                                    DateProcess.reduceOneMonth(paymentDate.getTime(), settingDay - 1))
+                            .map(tm -> tm.getOperationType().compareTo(Constant.ENTRY) == 0 ? tm.getAmount() :
+                                    tm.getAmount().negate()).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+
+                });
+    }
+
+    @Override
+    public Mono<Boolean> anyDebtExpired(String idOriginTransaction) {
+        return expiredDebtCreditCardV2(idOriginTransaction)
+                .map(v1 -> v1.compareTo(new BigDecimal(0)) > -1).
+                flatMap(tr -> expiredDebtCredit(idOriginTransaction))
+                .map(v2 -> v2.compareTo(new BigDecimal(0)) > -1);
+    }
 }

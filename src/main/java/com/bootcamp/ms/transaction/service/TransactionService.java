@@ -36,4 +36,7 @@ public interface TransactionService {
     Flux<Transaction> getByIdOriginTransactionAndInsertionDateBetween(String idOriginTransaction, Date startDate, Date finishDate);
 
     Flux<Transaction> getByIdOriginTransactionAndOperationTypeAndInsertionDateBetween(String idOriginTransaction, Short operationType, Date startDate, Date finishDate);
+
+    Mono<Boolean> anyDebtExpired(String idOriginTransaction);
+
 }

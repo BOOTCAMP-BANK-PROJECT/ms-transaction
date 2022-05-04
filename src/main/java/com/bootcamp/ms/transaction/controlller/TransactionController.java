@@ -63,6 +63,15 @@ public class TransactionController {
                 .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/debtExpired/{idOriginTransaction}")
+    public Mono<ResponseEntity<Mono<Boolean>>> anyDebtExpired(@PathVariable String idOriginTransaction) {
+        return Mono.just(
+                ResponseEntity.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(service.anyDebtExpired(idOriginTransaction))
+        );
+    }
+
     @GetMapping("/{idOriginTransaction}")
     public Mono<ResponseEntity<Mono<BigDecimal>>> getProductBalance(@PathVariable String idOriginTransaction) {
         return Mono.just(
@@ -71,4 +80,5 @@ public class TransactionController {
                         .body(service.getProductBalance(idOriginTransaction))
         );
     }
+
 }
