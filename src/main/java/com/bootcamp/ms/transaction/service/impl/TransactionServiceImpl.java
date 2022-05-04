@@ -275,8 +275,10 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public Mono<Boolean> anyDebtExpired(String idOriginTransaction) {
         return expiredDebtCreditCardV2(idOriginTransaction)
-                .map(v1 -> v1.compareTo(new BigDecimal(0)) > -1).
-                flatMap(tr -> expiredDebtCredit(idOriginTransaction))
-                .map(v2 -> v2.compareTo(new BigDecimal(0)) > -1);
+                .flatMap(v1 -> {
+                    return v1.compareTo(new BigDecimal(0)) < 0 ? Mono.just(false)
+                            : expiredDebtCredit(idOriginTransaction)
+                            .map(v2 -> v2.compareTo(new BigDecimal(0)) > -1);
+                });
     }
 }
