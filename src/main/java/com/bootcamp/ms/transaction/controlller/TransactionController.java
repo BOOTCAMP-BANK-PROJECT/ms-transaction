@@ -81,4 +81,13 @@ public class TransactionController {
         );
     }
 
+    @GetMapping("/top10/{idOriginTransaction}")
+    public Mono<ResponseEntity<Flux<Transaction>>> getTo10Movement(@PathVariable String idOriginTransaction) {
+        return Mono.just(
+                ResponseEntity.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(service.getTop10ByIdOriginTransactionOrderByInsertionDateDesc(idOriginTransaction))
+        );
+    }
+
 }

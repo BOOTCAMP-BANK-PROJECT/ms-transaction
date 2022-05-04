@@ -281,4 +281,10 @@ public class TransactionServiceImpl implements TransactionService {
                             .map(v2 -> v2.compareTo(new BigDecimal(0)) < 0);
                 });
     }
+
+    @Override
+    public Flux<Transaction> getTop10ByIdOriginTransactionOrderByInsertionDateDesc (String idOriginTransaction) {
+        return repository.findTop10ByIdOriginTransactionOrderByInsertionDateDesc(idOriginTransaction)
+                .switchIfEmpty(Mono.error(new Exception("Don´t have movements")));
+    }
 }

@@ -19,4 +19,6 @@ public interface TransactionRepository extends ReactiveMongoRepository<Transacti
     Flux<Transaction> findByIdOriginTransactionAndInsertionDateBetween(String idOriginTransaction, Date startDate, Date finishDate);
 
     Flux<Transaction> findByIdOriginTransactionAndOperationTypeAndInsertionDateBetween(String idOriginTransaction, Short operationType, Date startDate, Date finishDate);
+
+    Flux<Transaction> findTop10ByIdOriginTransactionOrderByInsertionDateDesc(String idOriginTransaction);
 }
