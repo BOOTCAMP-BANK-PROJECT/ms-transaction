@@ -50,7 +50,7 @@ public class MovementServiceImpl implements MovementService {
                 .switchIfEmpty(Mono.defer(() -> {
                             movement.setId(null);
                             movement.setInsertionDate(new Date());
-                            movement.setRegistrationStatus((short)1);
+                            movement.setRegistrationStatus((short) 1);
                             return admissionMovement(movement);
                         }
                 ))
@@ -89,27 +89,35 @@ public class MovementServiceImpl implements MovementService {
                 )));
     }
 
-    public Mono<Movement> admissionMovement(Movement movement){
-        return service.getProductBalance(movement.getId()).flatMap(am ->{
-            return service.checkComission(movement.getIdDepartureAccount(),3L).flatMap(re ->{
-                if(re==true){
-                    if(am.compareTo(movement.getAmount().add(Constant.AMOUNT_COMISSION))>-1){
+    public Mono<Movement> admissionMovement(Movement movement) {
+        return service.getProductBalance(movement.getId()).flatMap(am -> {
+            return service.checkComission(movement.getIdDepartureAccount(), 3L).flatMap(re -> {
+                if (re == true) {
+                    if (am.compareTo(movement.getAmount().add(Constant.AMOUNT_COMISSION)) > -1 &&
+                            movement.getIdDepartureAccount().length() == 24) {
                         return repository.save(movement).flatMap(m -> {
                             return service.generateTransactions(m).map(tr -> {
                                 return m;
                             });
                         });
-                    }else{
+                    } else {
                         return Mono.error(new Exception("Insufficient funds"));
                     }
-                }else{
-                    if(am.compareTo(movement.getAmount())>0){
+                } else {
+                    if (am.compareTo(movement.getAmount()) > 0 && movement.getIdDepartureAccount().length() == 24) {
                         return repository.save(movement).flatMap(m -> {
                             return service.generateTransactions(m).map(tr -> {
                                 return m;
                             });
                         });
-                    }else{
+                    } else if (!(movement.getIdDepartureAccount().length() == 24)) {
+                        return repository.save(movement).flatMap(m -> {
+                            return service.generateTransactions(m).map(tr -> {
+                                return m;
+                            });
+                        });
+
+                    } else {
                         return Mono.error(new Exception("Insufficient funds"));
                     }
                 }
