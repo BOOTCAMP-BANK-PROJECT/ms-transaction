@@ -151,7 +151,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public Mono<BigDecimal> getProductBalance(String idOriginTransaction) {
         return getByIdOriginTransaction(idOriginTransaction)
-                .map(tr -> tr.equals(Constant.ENTRY) ? tr.getAmount() : tr.getAmount().negate())
+                .map(tr -> tr.getOperationType().equals(Constant.ENTRY) ? tr.getAmount() : tr.getAmount().negate())
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
