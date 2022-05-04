@@ -1,0 +1,8 @@
+version: "3.8"
+
+services:
+  app:
+    image: samuel14luis/ms-transactions:1.0.0
+    ports:
+      - "3000:3000"
+    restart: always

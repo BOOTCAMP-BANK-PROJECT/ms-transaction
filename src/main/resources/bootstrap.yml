@@ -20,7 +20,7 @@ springdoc:
 
 # Tomcat Server Port
 server:
-  port: 3000
+  port: 3001
   
 #RESILIENCE4J CIRCUIT BREAKER
 resilience4j:
