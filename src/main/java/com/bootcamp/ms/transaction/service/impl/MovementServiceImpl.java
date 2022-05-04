@@ -103,7 +103,7 @@ public class MovementServiceImpl implements MovementService {
                         return Mono.error(new Exception("Insufficient funds"));
                     }
                 }else{
-                    if(am.compareTo(movement.getAmount())>-1){
+                    if(am.compareTo(movement.getAmount())>0){
                         return repository.save(movement).flatMap(m -> {
                             return service.generateTransactions(m).map(tr -> {
                                 return m;

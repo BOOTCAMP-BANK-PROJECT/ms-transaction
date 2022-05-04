@@ -39,4 +39,6 @@ public interface TransactionService {
 
     Mono<Boolean> anyDebtExpired(String idOriginTransaction);
 
+    Flux<Transaction> getTop10ByIdOriginTransactionOrderByInsertionDateDesc(String idOriginTransaction);
+
 }
