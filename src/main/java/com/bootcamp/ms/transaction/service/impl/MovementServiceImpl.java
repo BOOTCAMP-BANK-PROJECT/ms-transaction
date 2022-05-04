@@ -110,7 +110,13 @@ public class MovementServiceImpl implements MovementService {
                             });
                         });
                     }else{
-                        return Mono.error(new Exception("Insufficient funds"));
+                        return Mono.error(new BadRequestException(
+                                "TRANSACTION",
+                                "Insufficient funds.",
+                                "The account does not have sufficient funds to make the movement.",
+                                TransactionServiceImpl.class,
+                                "admissionMovement.compareTo"
+                        ));
                     }
                 }
             });

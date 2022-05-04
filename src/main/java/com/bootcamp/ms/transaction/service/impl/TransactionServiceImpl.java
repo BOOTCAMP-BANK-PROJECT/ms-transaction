@@ -169,7 +169,7 @@ public class TransactionServiceImpl implements TransactionService {
         return webClient
                 .getWebClient()
                 .post()
-                .uri("personal/active/credit_card/")
+                .uri("personal/active/credit_card")
                 .bodyValue(idOriginTransaction)
                 .retrieve()
                 .bodyToMono(CreditCard.class).map(cc -> {
@@ -207,7 +207,7 @@ public class TransactionServiceImpl implements TransactionService {
         return webClient
                 .getWebClient()
                 .post()
-                .uri("personal/active/credit_card/")
+                .uri("personal/active/credit_card")
                 .bodyValue(idOriginTransaction)
                 .retrieve()
                 .bodyToMono(CreditCard.class).flatMap(cc -> {
@@ -244,7 +244,7 @@ public class TransactionServiceImpl implements TransactionService {
         return webClient
                 .getWebClient()
                 .post()
-                .uri("personal/active/credit_card/")
+                .uri("personal/active/credit_card")
                 .bodyValue(idOriginTransaction)
                 .retrieve()
                 .bodyToMono(CreditCard.class).flatMap(cc -> {
