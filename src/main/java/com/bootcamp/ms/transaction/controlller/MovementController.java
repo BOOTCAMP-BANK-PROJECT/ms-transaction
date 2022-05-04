@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono;
 import java.net.URI;
 
 @RestController
-@RequestMapping("movement")
+@RequestMapping("transactions/movement")
 @Tag(name = "Movement", description = "Manage movements origin to generate the transactions")
 @CrossOrigin(value = {"*"})
 @RequiredArgsConstructor
