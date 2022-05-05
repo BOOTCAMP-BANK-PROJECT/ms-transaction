@@ -120,16 +120,18 @@ public class TransactionServiceImpl implements TransactionService {
         Long transactionsAllowed = 3L;
 
         return repository.save(objTransaction).flatMap(tr -> {
+            String idSaved = tr.getId();
+            tr.setId(null);
             tr.setIdOriginTransaction(movement.getIdIncomeAccount());
             tr.setOperationType(Constant.ENTRY);
-            Mono<Transaction> transactionMono = repository.save(tr).map(tre -> {
+            return repository.save(tr).map(tre -> {
+                tr.setId(idSaved);
                 if (movement.getIsPassive()) {
                     generateComission(tre, transactionsAllowed);
                     generateComission(tr, transactionsAllowed);
                 }
                 return tr;
             });
-            return Mono.just(tr);
         });
     }
 
