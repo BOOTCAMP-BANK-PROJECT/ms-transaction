@@ -37,24 +37,11 @@ public class MovementServiceImpl implements MovementService {
 
     @Override
     public Mono<Movement> save(Movement movement) {
-        return repository.findById(movement.getId())
-                .map(sa -> {
-                    throw new BadRequestException(
-                            "ID",
-                            "Client have one ore more accounts",
-                            sa.getId(),
-                            MovementServiceImpl.class,
-                            "save.onErrorResume"
-                    );
-                })
-                .switchIfEmpty(Mono.defer(() -> {
-                            movement.setId(null);
-                            movement.setInsertionDate(new Date());
-                            movement.setRegistrationStatus((short) 1);
-                            return admissionMovement(movement);
-                        }
-                ))
-                .onErrorResume(e -> Mono.error(e)).cast(Movement.class);
+        movement.setId(null);
+        movement.setInsertionDate(new Date());
+        movement.setRegistrationStatus((short) 1);
+
+        return admissionMovement(movement);
     }
 
     @Override
